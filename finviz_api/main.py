@@ -1,9 +1,18 @@
+import os
+import sys
+
+# Ensure the current directory (finviz_api) is in sys.path
+# This allows 'core', 'services', 'routers' to be imported as top-level modules
+# whether running from inside finviz_api or from the parent directory.
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from finviz_api.core.config import settings
-from finviz_api.routers import screener
-import os
+from core.config import settings
+from routers import screener
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -47,8 +56,8 @@ def health_check():
 
 from fastapi import WebSocket, WebSocketDisconnect
 import asyncio
-from finviz_api.services.orchestrator import update_market_data
-from finviz_api.services.websocket_manager import manager
+from services.orchestrator import update_market_data
+from services.websocket_manager import manager
 
 @app.on_event("startup")
 async def startup_event():

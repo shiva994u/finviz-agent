@@ -3,7 +3,7 @@ import io
 import httpx
 from typing import List, Dict, Any
 from circuitbreaker import circuit
-from finviz_api.core.config import settings
+from core.config import settings
 
 class FinvizClient:
     def __init__(self, api_key: str):

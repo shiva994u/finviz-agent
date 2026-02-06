@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from ..services.finviz_client import finviz_client
+from services.finviz_client import finviz_client
 
 router = APIRouter()
 

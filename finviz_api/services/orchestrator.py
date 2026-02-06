@@ -1,7 +1,7 @@
 import asyncio
-from finviz_api.services.finviz_client import finviz_client
-from finviz_api.services.cache_service import cache_service
-from finviz_api.services.websocket_manager import manager
+from .finviz_client import finviz_client
+from .cache_service import cache_service
+from .websocket_manager import manager
 
 async def update_market_data():
     """

@@ -17,7 +17,8 @@ export const useMarketStore = create<MarketStore>((set, get) => ({
     if (get().connected) return;
     
     // In dev, use port 8000. In prod, use relative or env var.
-    const socket = new WebSocket('ws://localhost:8000/ws');
+    const WS_BASE_URL = import.meta.env.WS_BASE_URL || 'ws://localhost:8000';
+    const socket = new WebSocket(`${WS_BASE_URL}/ws`);
     
     socket.onopen = () => {
       console.log('WebSocket Connected');

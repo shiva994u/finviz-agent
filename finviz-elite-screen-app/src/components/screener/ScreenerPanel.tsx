@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import * as ReactWindow from 'react-window';
 import * as AutoSizerPkg from 'react-virtualized-auto-sizer';
 import { Filter, ChevronDown, Search } from 'lucide-react';
@@ -60,8 +60,8 @@ const ScreenerRow = ({ index, style, data }: { index: number; style: React.CSSPr
 
 const FilterPill = ({ label, active = false }: { label: string; active?: boolean }) => (
     <button className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${active
-            ? 'bg-[#bef264]/20 text-[#bef264] border border-[#bef264]/30 shadow-[0_0_10px_rgba(190,242,100,0.1)]'
-            : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white'
+        ? 'bg-[#bef264]/20 text-[#bef264] border border-[#bef264]/30 shadow-[0_0_10px_rgba(190,242,100,0.1)]'
+        : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white'
         }`}>
         <span>{label}</span>
         <ChevronDown size={12} />

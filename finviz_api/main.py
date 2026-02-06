@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from .core.config import settings
-from .routers import screener
+from finviz_api.core.config import settings
+from finviz_api.routers import screener
 import os
 
 app = FastAPI(
@@ -47,8 +47,8 @@ def health_check():
 
 from fastapi import WebSocket, WebSocketDisconnect
 import asyncio
-from .services.orchestrator import update_market_data
-from .services.websocket_manager import manager
+from finviz_api.services.orchestrator import update_market_data
+from finviz_api.services.websocket_manager import manager
 
 @app.on_event("startup")
 async def startup_event():

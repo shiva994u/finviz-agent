@@ -56,31 +56,31 @@ const StockCard: React.FC<StockCardProps> = ({ data, moverData }) => {
     const displayData = hoveredData || lastInterval;
 
     return (
-        <div className="flex items-stretch gap-4 bg-[#161616] p-2 rounded-lg border border-white/5 h-32 hover:border-white/20 transition-colors w-full overflow-hidden relative">
+        <div className="flex flex-col md:flex-row md:items-stretch gap-2 md:gap-4 bg-[#161616] p-2 rounded-lg border border-white/5 h-auto md:h-32 hover:border-white/20 transition-colors w-full overflow-hidden relative">
 
-            {/* 1. LEFT CARD: Detailed Summary (Fixed Width) */}
-            <div className="w-40 flex-shrink-0 flex flex-col justify-between border-r border-white/10 pr-2 h-full pb-1">
+            {/* 1. LEFT CARD: Detailed Summary (Mobile: Top Header Row, Desktop: Left Column) */}
+            <div className="w-full md:w-40 flex-shrink-0 flex flex-row md:flex-col justify-between items-center md:items-stretch border-b md:border-b-0 md:border-r border-white/10 pb-2 md:pb-1 md:pr-2 mb-1 md:mb-0 h-auto md:h-full">
                 {/* Header */}
-                <div className="flex justify-between items-baseline">
+                <div className="flex flex-row md:justify-between items-baseline gap-3 md:gap-0">
                     <span className="text-xl font-bold text-white tracking-tight truncate">{moverData.ticker}</span>
                     <span className={`text-sm font-bold ${priceColor} flex items-center`}>{Math.abs(change).toFixed(2)}%</span>
                 </div>
 
                 {/* Key Stats Grid */}
-                <div className="flex flex-col gap-1 text-[10px] text-gray-500 font-mono mt-1">
-                    <div className="flex justify-between">
+                <div className="flex flex-row md:flex-col gap-4 md:gap-1 text-[10px] text-gray-500 font-mono mt-0 md:mt-1">
+                    <div className="flex md:justify-between gap-1 md:gap-0">
                         <span>Vol</span>
                         <span className="text-cyan-400 font-bold">{formatVol(marketVolRaw)}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex md:justify-between gap-1 md:gap-0">
                         <span>RSI</span>
                         <span className="text-yellow-400 font-bold">{avgRsi}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex md:justify-between gap-1 md:gap-0">
                         <span>EMA(10)</span>
                         <span className="text-blue-400">{ema10.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex md:justify-between gap-1 md:gap-0">
                         <span>EMA(25)</span>
                         <span className="text-purple-400">{ema25.toFixed(2)}</span>
                     </div>
@@ -88,7 +88,7 @@ const StockCard: React.FC<StockCardProps> = ({ data, moverData }) => {
             </div>
 
             {/* 2. RIGHT PANEL: Container for Header + Chart */}
-            <div className="flex-1 flex flex-col h-full overflow-hidden">
+            <div className="flex flex-col h-48 md:h-full md:flex-1 overflow-hidden w-full">
 
                 {/* TOP HEADER: Horizontal Bar Details */}
                 <div className="flex items-center gap-4 text-[10px] font-mono border-b border-white/5 pb-1 mb-1 px-1 h-6 shrink-0">
@@ -112,7 +112,7 @@ const StockCard: React.FC<StockCardProps> = ({ data, moverData }) => {
                 </div>
 
                 {/* CHART AREA: Simple Bar Chart with EMA Buffer Logic */}
-                <div className="flex-1 flex items-end gap-[2px] overflow-x-auto custom-scrollbar pb-2 pl-1 relative">
+                <div className="flex-1 flex items-end gap-[2px] overflow-x-auto custom-scrollbar pb-2 pl-1 relative min-h-[100px]">
                     {/* Reference Line */}
                     <div className="absolute top-1/2 left-0 right-0 border-t border-white/5 pointer-events-none" />
 
@@ -127,13 +127,14 @@ const StockCard: React.FC<StockCardProps> = ({ data, moverData }) => {
                         // Height based on Price Level (normalized to day's range)
                         const minPrice = Math.min(...intervals.map(i => i.low));
                         const maxPrice = Math.max(...intervals.map(i => i.high));
-                        const priceRange = maxPrice - minPrice;
+                        let priceRange = maxPrice - minPrice;
+                        if (isNaN(priceRange) || priceRange === 0) priceRange = 1;
 
-                        // Avoid division by zero if flat
-                        const safeRange = priceRange === 0 ? 1 : priceRange;
-
-                        // Scale close price to 10%-100% height
-                        const heightPct = 10 + ((d.close - minPrice) / safeRange) * 90;
+                        // Scale close price to 20%-100% height
+                        // Safe calculation with fallback
+                        let heightPct = 20 + ((d.close - minPrice) / priceRange) * 80;
+                        if (isNaN(heightPct)) heightPct = 50;
+                        heightPct = Math.max(5, Math.min(100, heightPct)); // Clamp between 5% and 100%
 
                         // Highlight hovered bar
                         const isHovered = hoveredData === d;
@@ -144,7 +145,7 @@ const StockCard: React.FC<StockCardProps> = ({ data, moverData }) => {
                                 key={i}
                                 onMouseEnter={() => setHoveredData(d)}
                                 onMouseLeave={() => setHoveredData(lastInterval)} // Revert to last interval on leave
-                                className={`group relative flex flex-col justify-end h-full min-w-[6px] w-[1.2%] flex-grow cursor-pointer transition-all ${opacityClass}`}
+                                className={`group relative flex flex-col justify-end h-full min-w-[3px] w-2 flex-shrink-0 cursor-pointer transition-all ${opacityClass}`}
                             >
                                 {/* Bar */}
                                 <div

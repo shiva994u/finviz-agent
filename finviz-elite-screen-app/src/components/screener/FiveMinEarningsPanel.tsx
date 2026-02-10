@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchEarnings, fetch5MinData, type FiveMinData, type MoverData } from '../../services/api';
+import { fetch5MinData, type FiveMinData, type MoverData } from '../../services/api';
 import { Loader2 } from 'lucide-react';
 import StockCard from './StockCard';
 

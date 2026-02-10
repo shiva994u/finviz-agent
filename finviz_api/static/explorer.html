@@ -8,28 +8,50 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; background: #f0f2f5; }
         .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         h1 { margin-top: 0; color: #1a1a1a; }
-        .controls { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
-        select, button { padding: 10px; font-size: 16px; border: 1px solid #ddd; border-radius: 4px; }
+        .controls { margin-bottom: 20px; }
+        .control-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        select, button, input[type="text"] { padding: 10px; font-size: 16px; border: 1px solid #ddd; border-radius: 4px; }
+        input[type="text"] { flex: 1; }
         button { background: #007bff; color: white; border: none; cursor: pointer; }
         button:hover { background: #0056b3; }
+        .method-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .method-get { background: #28a745; color: white; }
+        .method-post { background: #ffc107; color: black; }
+        .input-group { display: none; }
+        .input-group.active { display: block; }
+        .input-label { font-size: 14px; color: #666; margin-bottom: 5px; }
+        .input-hint { font-size: 12px; color: #999; margin-top: 2px; }
         #output { background: #f8f9fa; padding: 15px; border-radius: 4px; border: 1px solid #ddd; overflow-x: auto; max-height: 600px; }
         table { border-collapse: collapse; width: 100%; font-size: 14px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #f2f2f2; position: sticky; top: 0; }
         .error { color: red; background: #ffe6e6; padding: 10px; border-radius: 4px; }
         .loading { color: #666; font-style: italic; }
+        .nested-table { font-size: 12px; margin: 5px 0; }
+        .nested-table th, .nested-table td { padding: 4px; }
+        .collapsible { cursor: pointer; color: #007bff; text-decoration: underline; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Elite Trader API Explorer</h1>
         <div class="controls">
-            <select id="endpoint">
-                <option value="/api/v1/screener/top-movers">Top Movers (Elite CSV)</option>
-                <option value="/api/v1/screener/earnings">Earnings Surprises</option>
-            </select>
-            <button onclick="fetchData()">Fetch Data</button>
-            <label><input type="checkbox" id="tableView" checked> Table View</label>
+            <div class="control-row">
+                <select id="endpoint" onchange="updateInputFields()">
+                    <option value="/api/v1/screener/top-movers" data-method="GET">Top Movers (Elite CSV)</option>
+                    <option value="/api/v1/screener/earnings" data-method="GET">Earnings Surprises</option>
+                    <option value="/api/v1/screener/5min-intervals" data-method="POST">5-Minute Intervals</option>
+                </select>
+                <span id="methodBadge" class="method-badge method-get">GET</span>
+                <button onclick="fetchData()">Fetch Data</button>
+                <label><input type="checkbox" id="tableView" checked> Table View</label>
+            </div>
+            
+            <div id="tickerInput" class="input-group">
+                <div class="input-label">Ticker Symbols (comma-separated):</div>
+                <input type="text" id="tickers" placeholder="e.g., COIN, TSLA, AAPL" value="COIN">
+                <div class="input-hint">Enter one or more ticker symbols separated by commas</div>
+            </div>
         </div>
         <div id="output">
             <p style="color: #666;">Select an endpoint and click Fetch.</p>
@@ -37,26 +59,72 @@
     </div>
 
     <script>
+        function updateInputFields() {
+            const endpoint = document.getElementById('endpoint');
+            const selectedOption = endpoint.options[endpoint.selectedIndex];
+            const method = selectedOption.getAttribute('data-method');
+            const methodBadge = document.getElementById('methodBadge');
+            const tickerInput = document.getElementById('tickerInput');
+            
+            // Update method badge
+            methodBadge.textContent = method;
+            methodBadge.className = 'method-badge method-' + method.toLowerCase();
+            
+            // Show/hide input fields based on endpoint
+            if (endpoint.value === '/api/v1/screener/5min-intervals') {
+                tickerInput.classList.add('active');
+            } else {
+                tickerInput.classList.remove('active');
+            }
+        }
+        
         async function fetchData() {
             const endpoint = document.getElementById('endpoint').value;
             const outputDiv = document.getElementById('output');
             const useTable = document.getElementById('tableView').checked;
+            const selectedOption = document.getElementById('endpoint').options[document.getElementById('endpoint').selectedIndex];
+            const method = selectedOption.getAttribute('data-method');
             
             outputDiv.innerHTML = '<p class="loading">Loading data...</p>';
             
             try {
-                // Adjust URL relative to current root
-                const url = window.location.origin + endpoint; 
-                console.log("Fetching from:", url);
+                const url = window.location.origin + endpoint;
+                console.log("Fetching from:", url, "Method:", method);
                 
-                const response = await fetch(url);
+                let fetchOptions = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+                
+                // Add body for POST requests
+                if (method === 'POST' && endpoint === '/api/v1/screener/5min-intervals') {
+                    const tickersInput = document.getElementById('tickers').value;
+                    const tickers = tickersInput.split(',').map(t => t.trim()).filter(t => t);
+                    
+                    if (tickers.length === 0) {
+                        throw new Error('Please enter at least one ticker symbol');
+                    }
+                    
+                    // Send in the format expected by the Pydantic model
+                    fetchOptions.body = JSON.stringify({ tickers: tickers });
+                    console.log("Request body:", { tickers: tickers });
+                }
+                
+                const response = await fetch(url, fetchOptions);
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
                 }
                 const data = await response.json();
                 
                 if (useTable && Array.isArray(data) && data.length > 0) {
-                    renderTable(data, outputDiv);
+                    if (endpoint === '/api/v1/screener/5min-intervals') {
+                        render5MinIntervalsTable(data, outputDiv);
+                    } else {
+                        renderTable(data, outputDiv);
+                    }
                 } else {
                     renderJson(data, outputDiv);
                 }
@@ -96,6 +164,94 @@
             html += '</tbody></table>';
             container.innerHTML = html;
         }
+        
+        function render5MinIntervalsTable(data, container) {
+            if (data.length === 0) {
+                container.innerHTML = '<p>No data returned.</p>';
+                return;
+            }
+            
+            let html = '<table><thead><tr>';
+            html += '<th>Ticker</th><th>Date</th>';
+            html += '<th>Premarket</th><th>Market Hours</th><th>Post-Market</th>';
+            html += '</tr></thead><tbody>';
+            
+            data.forEach(ticker => {
+                html += '<tr>';
+                html += `<td><strong>${ticker.ticker}</strong></td>`;
+                html += `<td>${ticker.date}</td>`;
+                
+                // Premarket
+                html += '<td>';
+                html += `<strong>${ticker.premarket.interval_count} intervals</strong><br>`;
+                html += `Open: $${ticker.premarket.open.toFixed(2)}<br>`;
+                html += `High: $${ticker.premarket.high.toFixed(2)}<br>`;
+                html += `Low: $${ticker.premarket.low.toFixed(2)}<br>`;
+                html += `Close: $${ticker.premarket.close.toFixed(2)}<br>`;
+                html += `Volume: ${ticker.premarket.volume.toLocaleString()}`;
+                html += '</td>';
+                
+                // Market Hours
+                html += '<td>';
+                html += `<strong>${ticker.market_hours.length} intervals</strong><br>`;
+                if (ticker.market_hours.length > 0) {
+                    const first = ticker.market_hours[0];
+                    const last = ticker.market_hours[ticker.market_hours.length - 1];
+                    html += `First: ${first.timestamp} ($${first.open.toFixed(2)} → $${first.close.toFixed(2)})<br>`;
+                    html += `Last: ${last.timestamp} ($${last.open.toFixed(2)} → $${last.close.toFixed(2)})<br>`;
+                    html += `<span class="collapsible" onclick="toggleDetails(this, ${JSON.stringify(ticker.market_hours).replace(/"/g, '&quot;')})">Show all intervals</span>`;
+                }
+                html += '</td>';
+                
+                // Post-Market
+                html += '<td>';
+                html += `<strong>${ticker.postmarket.interval_count} intervals</strong><br>`;
+                html += `Open: $${ticker.postmarket.open.toFixed(2)}<br>`;
+                html += `High: $${ticker.postmarket.high.toFixed(2)}<br>`;
+                html += `Low: $${ticker.postmarket.low.toFixed(2)}<br>`;
+                html += `Close: $${ticker.postmarket.close.toFixed(2)}<br>`;
+                html += `Volume: ${ticker.postmarket.volume.toLocaleString()}`;
+                html += '</td>';
+                
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        function toggleDetails(element, intervals) {
+            const row = element.closest('tr');
+            const existingDetails = row.nextElementSibling;
+            
+            if (existingDetails && existingDetails.classList.contains('details-row')) {
+                existingDetails.remove();
+                element.textContent = 'Show all intervals';
+            } else {
+                let html = '<tr class="details-row"><td colspan="5">';
+                html += '<table class="nested-table"><thead><tr>';
+                html += '<th>Timestamp</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Volume</th>';
+                html += '</tr></thead><tbody>';
+                
+                intervals.forEach(interval => {
+                    html += '<tr>';
+                    html += `<td>${interval.timestamp}</td>`;
+                    html += `<td>$${interval.open.toFixed(2)}</td>`;
+                    html += `<td>$${interval.high.toFixed(2)}</td>`;
+                    html += `<td>$${interval.low.toFixed(2)}</td>`;
+                    html += `<td>$${interval.close.toFixed(2)}</td>`;
+                    html += `<td>${interval.volume.toLocaleString()}</td>`;
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table></td></tr>';
+                row.insertAdjacentHTML('afterend', html);
+                element.textContent = 'Hide intervals';
+            }
+        }
+        
+        // Initialize on load
+        updateInputFields();
     </script>
 </body>
 </html>

@@ -17,6 +17,7 @@ const Navbar: React.FC = () => {
     const links = [
         { name: 'Top Movers', path: '/top-movers' },
         { name: 'Earnings Intelligence', path: '/earnings' },
+        { name: '5Min Earnings', path: '/5min-earnings' },
         { name: 'Screener', path: '/screener' },
     ];
 

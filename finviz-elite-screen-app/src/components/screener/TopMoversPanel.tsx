@@ -16,19 +16,22 @@ const MoverRow = ({ item, isPositive }: { item: MoverData; isPositive: boolean }
             <div className="hidden md:block md:w-[12%] text-gray-400 text-sm truncate pr-2">
                 {item.industry}
             </div>
+            <div className="w-[20%] md:w-[8%] font-mono text-lg font-medium text-white text-right pr-2 md:pr-8">
+                ${item.price.toFixed(2)}
+            </div>
             <div className="w-[20%] md:w-[8%] font-mono text-lg font-medium text-white text-right pr-2 md:pr-4">
                 ${item.open.toFixed(2)}
             </div>
-            <div className="w-[20%] md:w-[8%] font-mono text-lg font-medium text-white text-right pr-2 md:pr-8">
-                ${item.price.toFixed(2)}
+            <div className="hidden md:block md:w-[8%] font-mono text-sm text-gray-400 text-right pr-4">
+                ${item.prevClose.toFixed(2)}
             </div>
             <div className={`w-[25%] md:w-[10%] font-mono text-lg font-medium text-right pr-2 md:pr-4 ${isPositive ? 'text-[#bef264]' : 'text-[#ef4444]'}`}>
                 {isPositive ? '+' : ''}{item.changePercent.toFixed(2)}%
             </div>
-            <div className="hidden md:block md:w-[13%] text-gray-400 text-sm truncate pr-2 text-right">
+            <div className="hidden md:block md:w-[11%] text-gray-400 text-sm truncate pr-2 text-right">
                 {item.volume.toLocaleString()}
             </div>
-            <div className="hidden md:block md:w-[13%] text-gray-500 text-sm truncate pr-2 text-right">
+            <div className="hidden md:block md:w-[11%] text-gray-500 text-sm truncate pr-2 text-right">
                 {item.averageVolume.toLocaleString()}
             </div>
             <div className="hidden md:block md:w-[10%] font-mono text-sm text-gray-400 text-right pr-4">
@@ -185,7 +188,6 @@ const TopMoversPanel: React.FC = () => {
             </div>
 
             {/* Column Headers */}
-            {/* Column Headers */}
             <div className="flex px-4 py-3 text-xs uppercase tracking-wider text-gray-400 font-bold shrink-0 bg-black/20 border-b border-white/5 select-none">
                 <div
                     className="w-[35%] md:w-[26%] cursor-pointer hover:text-white transition-colors flex items-center"
@@ -200,16 +202,22 @@ const TopMoversPanel: React.FC = () => {
                     Industry <SortIcon columnKey="industry" />
                 </div>
                 <div
+                    className="w-[20%] md:w-[8%] text-right pr-2 md:pr-8 cursor-pointer hover:text-white transition-colors flex items-center justify-end"
+                    onClick={() => handleSort('price')}
+                >
+                    <span className="md:hidden">$Price</span><span className="hidden md:inline">$Price</span> <SortIcon columnKey="price" />
+                </div>
+                <div
                     className="w-[20%] md:w-[8%] text-right pr-2 md:pr-4 cursor-pointer hover:text-white transition-colors flex items-center justify-end"
                     onClick={() => handleSort('open')}
                 >
                     <span className="md:hidden">Open</span><span className="hidden md:inline">$Open</span> <SortIcon columnKey="open" />
                 </div>
                 <div
-                    className="w-[20%] md:w-[8%] text-right pr-2 md:pr-8 cursor-pointer hover:text-white transition-colors flex items-center justify-end"
-                    onClick={() => handleSort('price')}
+                    className="hidden md:flex md:w-[8%] text-right pr-4 cursor-pointer hover:text-white transition-colors items-center justify-end"
+                    onClick={() => handleSort('prevClose')}
                 >
-                    <span className="md:hidden">Price</span><span className="hidden md:inline">Last Price</span> <SortIcon columnKey="price" />
+                    $Close <SortIcon columnKey="prevClose" />
                 </div>
                 <div
                     className="w-[25%] md:w-[10%] text-right pr-2 md:pr-4 cursor-pointer hover:text-white transition-colors flex items-center justify-end"
@@ -218,13 +226,13 @@ const TopMoversPanel: React.FC = () => {
                     <span className="md:hidden">% Chg</span><span className="hidden md:inline">% Change</span> <SortIcon columnKey="changePercent" />
                 </div>
                 <div
-                    className="hidden md:flex md:w-[13%] text-right pr-4 cursor-pointer hover:text-white transition-colors items-center justify-end"
+                    className="hidden md:flex md:w-[11%] text-right pr-4 cursor-pointer hover:text-white transition-colors items-center justify-end"
                     onClick={() => handleSort('volume')}
                 >
                     Volume <SortIcon columnKey="volume" />
                 </div>
                 <div
-                    className="hidden md:flex md:w-[13%] text-right pr-4 cursor-pointer hover:text-white transition-colors items-center justify-end"
+                    className="hidden md:flex md:w-[11%] text-right pr-4 cursor-pointer hover:text-white transition-colors items-center justify-end"
                     onClick={() => handleSort('averageVolume')}
                 >
                     Avg Vol <SortIcon columnKey="averageVolume" />

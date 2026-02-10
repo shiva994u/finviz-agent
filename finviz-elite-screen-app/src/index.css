@@ -4,29 +4,29 @@
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg rounded-xl;
+    @apply bg-[#1a1d24] backdrop-blur-xl border border-[#2a2d34] shadow-2xl rounded-lg;
   }
 
   .glass-header {
-    @apply bg-white/5 backdrop-blur-lg border-b border-white/10;
+    @apply bg-[#1a1d24] backdrop-blur-lg border-b border-[#2a2d34];
   }
 
   /* Custom Scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-transparent;
+    @apply bg-[#0f1115];
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-white/20 rounded-full hover:bg-white/30;
+    @apply bg-[#3a3d44] rounded-md hover:bg-[#4a4d54];
   }
 }
 
 body {
-  @apply bg-[#121212] text-white min-h-screen overflow-x-hidden;
-  background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #121212 100%);
+  @apply bg-[#0f1115] text-white min-h-screen overflow-x-hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
 }

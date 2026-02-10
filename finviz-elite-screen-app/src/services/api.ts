@@ -7,6 +7,7 @@ export interface MoverData {
     industry: string;
     company: string;
     open: number;
+    prevClose: number;
     volatilityWeek: number;
     relativeVolume: number;
     averageVolume: number;
@@ -46,6 +47,7 @@ export const fetchTopMovers = async (): Promise<MoverData[]> => {
                 sector: item.sector || '',
                 industry: item.industry || '',
                 open,
+                prevClose: typeof item.prev_close === 'number' ? item.prev_close : parseFloat(item.prev_close || '0'),
                 volatilityWeek: typeof item['volatility_(week)'] === 'number' ? item['volatility_(week)'] : parseFloat(item['volatility_(week)'] || '0'),
                 relativeVolume: typeof item.relative_volume === 'number' ? item.relative_volume : parseFloat(item.relative_volume || '0'),
                 averageVolume: (typeof item.average_volume === 'number' ? item.average_volume : parseFloat(item.average_volume || '0')) * 1000,
@@ -89,6 +91,7 @@ export const fetchEarnings = async (): Promise<MoverData[]> => {
                 sector: item.sector || '',
                 industry: item.industry || '',
                 open,
+                prevClose: typeof item.prev_close === 'number' ? item.prev_close : parseFloat(item.prev_close || '0'),
                 volatilityWeek: typeof item['volatility_(week)'] === 'number' ? item['volatility_(week)'] : parseFloat(item['volatility_(week)'] || '0'),
                 relativeVolume: typeof item.relative_volume === 'number' ? item.relative_volume : parseFloat(item.relative_volume || '0'),
                 averageVolume: (typeof item.average_volume === 'number' ? item.average_volume : parseFloat(item.average_volume || '0')) * 1000,
@@ -98,6 +101,76 @@ export const fetchEarnings = async (): Promise<MoverData[]> => {
         });
     } catch (error) {
         console.error("Failed to fetch earnings:", error);
+        return [];
+    }
+};
+
+export interface IntervalData {
+  timestamp: string;
+  datetime: string; // ISO string
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  rvol?: number;
+  ema10?: number;
+  ema25?: number;
+}
+
+export interface FiveMinData {
+  ticker: string;
+  date: string;
+  premarket: {
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+    interval_count: number;
+  };
+  market_hours: IntervalData[];
+  postmarket: {
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+    interval_count: number;
+  };
+  analysis: {
+    vol_momentum: "STRONG" | "MODERATE" | "WEAK";
+    buy_pressure_pct: number;
+    sell_pressure_pct: number;
+    vp_correlation: number;
+    accumulation_detected: boolean;
+    pv_score: number;
+  };
+}
+
+export const fetch5MinData = async (tickers: string[]): Promise<FiveMinData[]> => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/screener/5min-intervals`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ tickers }),
+        });
+
+        if (!response.ok) {
+            let errorMessage = response.statusText;
+            try {
+                const errorBody = await response.json();
+                errorMessage = errorBody.detail || JSON.stringify(errorBody);
+            } catch {
+                errorMessage = await response.text();
+            }
+            throw new Error(`API Error: ${response.status} ${errorMessage}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("Failed to fetch 5min data:", error);
         return [];
     }
 };
